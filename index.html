@@ -61,7 +61,7 @@
         id: 'book-1',
         title: 'The Law of Attraction',
         author: 'Elias Thorne',
-        price: 1, // SET TO 1 KES FOR DARAJA TESTING
+        price: 1, // Kept at 1 KES for Daraja testing
         category: 'Spirituality',
         iconName: 'sparkles',
         iconColor: 'text-yellow-400',
@@ -69,7 +69,6 @@
         synopsis: 'Unlock the hidden geometry of the soul. This profound text bridges the gap between ancient esoteric traditions and modern quantum consciousness.',
         preview: `Chapter 1: The First Principle\n\nTo understand the nature of reality, one must first recognize that the observer and the observed are inexorably linked. The ancient masters knew this not through mathematics, but through direct experience of the unified field. \n\nWhen we sit in silence, the boundaries of the physical vessel begin to blur. It is in this liminal space that true transmutation occurs...`,
         fullText: `But this process requires more than passive sitting. It demands active engagement with the energetic currents of the body.\n\nChapter 2: The Ethereal Anatomy\nBeyond the physical flesh lies the subtle body—a network of nadis and meridians that carry the vital life force, or Prana. When these channels are blocked by trauma or ignorance, disease manifests in the physical realm.\n\nTo clear these pathways, we must employ the breath. By mastering the rhythm of inhalation and exhalation, we gain access to the autonomic nervous system, allowing us to consciously heal deeply embedded wounds.\n\n[Full book continues...]`,
-        // Your real Supabase URL is here!
         downloadUrl: 'https://qdeyxhvjrwiexqemrvbb.supabase.co/storage/v1/object/public/ebooks/Law%20of%20Attraction_%20The%20Secret%20Power%20of%20The%20Universe%20(Using%20Your%20Subconscious%20Mind,%20Visualization%20&%20Meditation%20for%20Manifesting%20Happiness,%20Love,%20Money%20&%20Success)%20Inspirational%20Self%20Help%20Book%20(%20PDFDrive%20).pdf'
       },
       {
@@ -84,7 +83,7 @@
         synopsis: 'A comprehensive guide to the medicinal and spiritual properties of indigenous African flora.',
         preview: `Introduction: The Wisdom of the Roots\n\nLong before modern pharmacology synthesized active compounds in sterile laboratories, our ancestors walked the forests and savannahs, conversing with the plant kingdom...`,
         fullText: `When preparing a Neem infusion, intention is paramount. Water acts as a crystalline memory bank...\n\n[Full book includes detailed recipes and dosages]`,
-        downloadUrl: '#' // Add your other Supabase links here in the future
+        downloadUrl: '#' // Add Supabase link later
       },
       {
         id: 'book-3',
@@ -98,21 +97,21 @@
         synopsis: 'Dive into the submerged history of humanity. Reconstruct the lost civilization of Lemuria.',
         preview: `Prologue: Before the Flood\n\nHistory, as it is taught in institutions, is merely the surface tension of a vast, uncharted ocean...`,
         fullText: `The indigenous oral traditions of the Pacific Islands speak uniformly of a motherland that sank beneath the waves...\n\n[The remaining chapters explore Lemurian energies.]`,
-        downloadUrl: '#'
+        downloadUrl: '#' // Add Supabase link later
       },
       {
-        id: 'book-4', // Make sure this number goes up!
-        title: 'BABAJI'S KRIYA YOGA 144 TECHNIQUES ',
+        id: 'book-4', 
+        title: "BABAJI'S KRIYA YOGA 144 TECHNIQUES", // Uses double quotes to fix the apostrophe bug!
         author: 'BABAJI',
-        price: 30, // Put your real price here (change to 1 for testing)
+        price: 30, // Safaricom sandbox might sometimes fail on amounts > 1 KES, change to 1 if it gives an error!
         category: 'Ancient Wisdom',
-        iconName: 'yoga', // Find new icons at https://lucide.dev/icons/
-        iconColor: 'text-orange-400', // You can change colors!
-        coverGradient: 'from-orange-900 to-slate-900', // Match the cover to the theme
+        iconName: 'sun', // Lucide does not have a 'yoga' icon, using 'sun' for energy/spirituality
+        iconColor: 'text-orange-400',
+        coverGradient: 'from-orange-900 to-slate-900',
         synopsis: 'A short catchy description of the book for the details page.',
         preview: `Chapter 1\n\nThis is the free text they can read before the paywall.`,
         fullText: `This is the locked text that is blurred out until they pay.`,
-        downloadUrl: 'https://qdeyxhvjrwiexqemrvbb.supabase.co/storage/v1/object/public/ebooks/BABAJI'S%20KRIYA%20YOGA%20144%20TECHNIQUES%201..18%20ASANA%20(%20PDFDrive%20).pdf'
+        downloadUrl: "https://qdeyxhvjrwiexqemrvbb.supabase.co/storage/v1/object/public/ebooks/BABAJI'S%20KRIYA%20YOGA%20144%20TECHNIQUES%201..18%20ASANA%20(%20PDFDrive%20).pdf" // Double quotes!
       }
     ];
 
@@ -124,7 +123,7 @@
         unlockedBooks: [],
         paymentMethod: 'mpesa',
         isProcessing: false,
-        paymentMessage: '', // Messages to show the user during checkout
+        paymentMessage: '',
         pollingInterval: null
       },
 
@@ -161,11 +160,8 @@
         this.renderModal();
       },
 
-      // --- REAL M-PESA LOGIC ---
       async handlePayment(event, bookId) {
         event.preventDefault();
-        
-        // 1. Format the phone number to start with 254
         let phone = document.getElementById('mpesa-phone').value.trim();
         if (phone.startsWith('0')) phone = '254' + phone.slice(1);
         if (phone.startsWith('+')) phone = phone.slice(1);
@@ -177,8 +173,6 @@
 
         try {
           const book = this.getBook();
-          
-          // 2. Call our Netlify Backend to trigger Daraja
           const response = await fetch('/.netlify/functions/mpesa-stkpush', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -188,7 +182,6 @@
           const data = await response.json();
 
           if (data.success) {
-            // 3. Prompt sent! Start checking the database for the webhook update
             this.state.paymentMessage = 'Prompt sent! Please enter your M-Pesa PIN.';
             this.renderModal();
             this.pollTransactionStatus(data.checkoutRequestId, book.id);
@@ -202,10 +195,9 @@
         }
       },
 
-      // Continually check if the user entered their PIN
       pollTransactionStatus(checkoutRequestId, bookId) {
         let attempts = 0;
-        const maxAttempts = 30; // Stop checking after ~90 seconds
+        const maxAttempts = 30; // ~90 seconds
 
         this.state.pollingInterval = setInterval(async () => {
           attempts++;
@@ -218,7 +210,6 @@
           }
 
           try {
-            // Ask our Netlify backend if Supabase says "SUCCESS" yet
             const res = await fetch(`/.netlify/functions/check-status?id=${checkoutRequestId}`);
             const data = await res.json();
 
@@ -226,18 +217,17 @@
               clearInterval(this.state.pollingInterval);
               this.state.paymentMessage = 'Payment Successful! Unlocking...';
               this.renderModal();
-              // Wait 1.5 seconds so they can read the success message, then unlock
               setTimeout(() => this.unlockBook(bookId), 1500);
             } else if (data.status === 'FAILED') {
               clearInterval(this.state.pollingInterval);
               this.state.isProcessing = false;
-              this.state.paymentMessage = 'Payment was cancelled or failed.';
+              this.state.paymentMessage = 'Payment failed or was cancelled.';
               this.renderModal();
             }
           } catch (err) {
             console.error("Polling error", err);
           }
-        }, 3000); // Check every 3 seconds
+        }, 3000);
       },
 
       getBook() { return EBOOKS.find(b => b.id === this.state.selectedBookId); },
@@ -297,6 +287,7 @@
             <section class="max-w-6xl mx-auto px-6" id="catalog">
               <div class="flex items-end justify-between mb-12 border-b border-slate-800 pb-4">
                 <h2 class="text-3xl font-light">The <span class="font-semibold text-yellow-500">Collection</span></h2>
+                <span class="text-slate-500 text-sm uppercase tracking-widest">${EBOOKS.length} Volumes</span>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">${catalogHTML}</div>
             </section>
@@ -316,6 +307,7 @@
                 <div class="w-full aspect-[2/3] rounded-xl flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br ${book.coverGradient} shadow-2xl border border-white/5">
                   <i data-lucide="${book.iconName}" class="w-16 h-16 ${book.iconColor}"></i>
                   <h2 class="mt-8 font-serif text-3xl font-bold text-white leading-tight">${book.title}</h2>
+                  <p class="mt-4 text-white/70 italic">${book.author}</p>
                 </div>
               </div>
               <div class="flex flex-col">
@@ -325,17 +317,22 @@
                 <div class="prose prose-invert max-w-none text-slate-300 leading-relaxed mb-10"><p>${book.synopsis}</p></div>
                 <div class="bg-slate-900/50 rounded-2xl p-6 border border-slate-800 mb-8 flex flex-col sm:flex-row items-center justify-between gap-6">
                   <div>
-                    <p class="text-sm text-slate-400 mb-1">Investment</p>
+                    <p class="text-sm text-slate-400 mb-1">Investment in Knowledge</p>
                     <p class="text-3xl font-bold text-white">KES ${book.price}</p>
                   </div>
                   <div class="flex gap-4 w-full sm:w-auto">
                     ${unlocked ? `
-                      <button onclick="app.navigate('reader')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl"><i data-lucide="book-open" class="w-5 h-5"></i> Read Full Book</button>
+                      <button onclick="app.navigate('reader')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-colors"><i data-lucide="book-open" class="w-5 h-5"></i> Read Full Book</button>
                     ` : `
-                      <button onclick="app.navigate('reader')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl border border-slate-700"><i data-lucide="book" class="w-5 h-5 text-slate-400"></i> Preview</button>
-                      <button onclick="app.openModal()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-yellow-900/20"><i data-lucide="lock" class="w-5 h-5"></i> Unlock Now</button>
+                      <button onclick="app.navigate('reader')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition-colors border border-slate-700"><i data-lucide="book" class="w-5 h-5 text-slate-400"></i> Read Preview</button>
+                      <button onclick="app.openModal()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl transition-colors shadow-lg shadow-yellow-900/20"><i data-lucide="lock" class="w-5 h-5"></i> Unlock Now</button>
                     `}
                   </div>
+                </div>
+                <div class="flex items-center gap-6 text-sm text-slate-500">
+                  <div class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-yellow-500"></i> Instant Access</div>
+                  <div class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-yellow-500"></i> Secure Payment</div>
+                  <div class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-yellow-500"></i> Multi-device Read</div>
                 </div>
               </div>
             </div>
@@ -350,13 +347,15 @@
         return `
           <div class="max-w-4xl mx-auto px-6 pt-8 animate-fade-in">
             <div class="flex items-center justify-between pb-6 border-b border-slate-800/60 mb-10 sticky top-20 bg-slate-950/90 backdrop-blur z-30 pt-4">
-              <button onclick="app.navigate('details')" class="flex items-center gap-2 text-slate-400 hover:text-white"><i data-lucide="arrow-left" class="w-4 h-4"></i> Exit Reader</button>
+              <button onclick="app.navigate('details')" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i><span class="hidden sm:inline">Exit Reader</span></button>
               <div class="text-center">
                 <h2 class="font-bold text-slate-200">${book.title}</h2>
                 <p class="text-xs text-slate-500 uppercase tracking-widest">${unlocked ? 'Full Text' : 'Preview Mode'}</p>
               </div>
               <div>
-                ${unlocked ? `<a href="${book.downloadUrl}" target="_blank" class="flex items-center gap-2 text-yellow-500 hover:text-yellow-400 text-sm font-medium bg-yellow-500/10 px-4 py-2 rounded-lg"><i data-lucide="download" class="w-4 h-4"></i> Download PDF</a>` : `<div></div>`}
+                ${unlocked && book.downloadUrl !== '#' ? `
+                  <a href="${book.downloadUrl}" target="_blank" class="flex items-center gap-2 text-yellow-500 hover:text-yellow-400 transition-colors text-sm font-medium bg-yellow-500/10 px-4 py-2 rounded-lg"><i data-lucide="download" class="w-4 h-4"></i><span class="hidden sm:inline">Download PDF</span></a>
+                ` : `<div></div>`}
               </div>
             </div>
             <div class="relative font-serif text-lg leading-loose text-slate-300 md:text-xl md:leading-[2.2]">
@@ -368,11 +367,20 @@
                     <div class="bg-slate-900/90 border border-yellow-900/50 p-8 rounded-2xl max-w-md text-center shadow-2xl backdrop-blur-md">
                       <i data-lucide="lock" class="w-12 h-12 text-yellow-500 mx-auto mb-4"></i>
                       <h3 class="text-2xl font-bold text-white mb-3">Keep Reading</h3>
-                      <button onclick="app.openModal()" class="w-full py-4 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl shadow-lg text-lg flex items-center justify-center gap-2">Pay KES ${book.price} to Unlock</button>
+                      <p class="text-slate-400 text-sm mb-6 leading-relaxed">You've reached the end of the free preview. Unlock the complete wisdom of <i>"${book.title}"</i> to continue your journey.</p>
+                      <button onclick="app.openModal()" class="w-full py-4 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl transition-all shadow-lg text-lg flex items-center justify-center gap-2">Pay KES ${book.price} to Unlock</button>
                     </div>
                   </div>
                 </div>
-              ` : `<div class="whitespace-pre-wrap mt-4 animate-slide-in-bottom">${book.fullText}</div>`}
+              ` : `
+                <div class="whitespace-pre-wrap mt-4 animate-slide-in-bottom">${book.fullText}
+                  <div class="my-20 flex flex-col items-center justify-center p-12 border border-slate-800 rounded-2xl bg-slate-900/30">
+                    <i data-lucide="sparkles" class="w-8 h-8 text-yellow-500 mb-4"></i>
+                    <h4 class="text-xl font-sans font-bold text-white mb-2">End of Book</h4>
+                    <p class="text-sans text-slate-400 text-sm text-center max-w-md">Thank you for seeking wisdom with Hekima Ebooks. May this knowledge serve you well on your path.</p>
+                  </div>
+                </div>
+              `}
             </div>
           </div>
         `;
@@ -386,14 +394,14 @@
 
         container.innerHTML = `
           <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="app.closeModal()"></div>
+            <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm animate-fade-in" onclick="app.closeModal()"></div>
             <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-zoom-in">
               <div class="p-6 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
                 <h3 class="text-lg font-bold text-white">Complete Purchase</h3>
-                <button onclick="app.closeModal()" ${processing ? 'disabled' : ''} class="text-slate-500 hover:text-white disabled:opacity-50"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="app.closeModal()" ${processing ? 'disabled' : ''} class="text-slate-500 hover:text-white transition-colors disabled:opacity-50"><i data-lucide="x" class="w-5 h-5"></i></button>
               </div>
-              <div class="p-6 bg-slate-800/30 border-b border-slate-800 flex justify-between">
-                <div><span class="block text-sm text-slate-400">Unlocking</span><span class="font-semibold text-slate-200">${book.title}</span></div>
+              <div class="p-6 bg-slate-800/30 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex flex-col"><span class="text-sm text-slate-400">Unlocking</span><span class="font-semibold text-slate-200">${book.title}</span></div>
                 <div class="text-right"><span class="block text-sm text-slate-400">Total</span><span class="font-bold text-yellow-500 text-lg">KES ${book.price}</span></div>
               </div>
               <div class="p-6">
@@ -407,14 +415,14 @@
                 <form onsubmit="app.handlePayment(event, '${book.id}')" class="${msg && processing ? 'hidden' : 'block'}">
                   <div class="space-y-4 mb-8">
                     <div>
-                      <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase">M-Pesa Number</label>
+                      <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wide">M-Pesa Number</label>
                       <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">+254</span>
-                        <input type="text" id="mpesa-phone" placeholder="7XX XXX XXX" required ${processing ? 'disabled' : ''} class="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 pl-14 pr-4 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                        <input type="text" id="mpesa-phone" placeholder="7XX XXX XXX" required ${processing ? 'disabled' : ''} class="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 pl-14 pr-4 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-slate-600 disabled:opacity-50" />
                       </div>
                     </div>
                   </div>
-                  <button type="submit" ${processing ? 'disabled' : ''} class="w-full py-3.5 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(5,150,105,0.3)]">
+                  <button type="submit" ${processing ? 'disabled' : ''} class="w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${processing ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(5,150,105,0.3)]'}">
                     Pay KES ${book.price}
                   </button>
                 </form>
