@@ -4,143 +4,74 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hekima Ebooks - Ancient Wisdom & Spirituality</title>
-  
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-
   <style>
-    /* Custom Animations */
-    @keyframes fadeIn { 
-      from { opacity: 0; } 
-      to { opacity: 1; } 
-    }
-    @keyframes slideInRight { 
-      from { transform: translateX(2rem); opacity: 0; } 
-      to { transform: translateX(0); opacity: 1; } 
-    }
-    @keyframes slideInBottom { 
-      from { transform: translateY(2rem); opacity: 0; } 
-      to { transform: translateY(0); opacity: 1; } 
-    }
-    @keyframes zoomIn {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-    
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideInRight { from { transform: translateX(2rem); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideInBottom { from { transform: translateY(2rem); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .animate-fade-in { animation: fadeIn 0.7s ease-out forwards; }
     .animate-slide-in-right { animation: slideInRight 0.5s ease-out forwards; }
     .animate-slide-in-bottom { animation: slideInBottom 0.8s ease-out forwards; }
     .animate-zoom-in { animation: zoomIn 0.3s ease-out forwards; }
-    
-    /* Scrollbar styling for a premium feel */
     ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #020617; } /* slate-950 */
-    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; } /* slate-800 */
-    ::-webkit-scrollbar-thumb:hover { background: #334155; } /* slate-700 */
-
-    /* Blur for locked text */
-    .blur-text {
-      filter: blur(5px);
-      opacity: 0.4;
-      user-select: none;
-    }
+    ::-webkit-scrollbar-track { background: #020617; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    .blur-text { filter: blur(5px); opacity: 0.4; user-select: none; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-200 font-sans selection:bg-yellow-500/30 min-h-screen">
 
-  <!-- Navigation -->
   <nav class="sticky top-0 z-40 w-full backdrop-blur-md bg-slate-950/80 border-b border-slate-800/50">
     <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
-      <div 
-        class="flex items-center gap-2 cursor-pointer group"
-        onclick="app.navigate('home')"
-      >
+      <div class="flex items-center gap-2 cursor-pointer group" onclick="app.navigate('home')">
         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-900/20 group-hover:scale-105 transition-transform">
           <i data-lucide="book-open" class="text-slate-950 w-5 h-5"></i>
         </div>
-        <span class="text-2xl font-light tracking-widest text-slate-100 uppercase">
-          Hekima<span class="font-bold text-yellow-500">Ebooks</span>
-        </span>
+        <span class="text-2xl font-light tracking-widest text-slate-100 uppercase">Hekima<span class="font-bold text-yellow-500">Ebooks</span></span>
       </div>
-      
       <div class="hidden md:flex gap-8 text-sm font-medium tracking-wide text-slate-400">
         <button onclick="app.navigate('home')" class="hover:text-yellow-400 transition-colors">Catalog</button>
         <button class="hover:text-yellow-400 transition-colors">My Library</button>
-        <button class="hover:text-yellow-400 transition-colors">About</button>
       </div>
-      
-      <button class="md:hidden text-slate-300 p-2">
-        <i data-lucide="search" class="w-6 h-6"></i>
-      </button>
     </div>
   </nav>
 
-  <!-- Main Content Container -->
   <main id="main-content" class="pb-24"></main>
-
-  <!-- Modal Container -->
   <div id="modal-container"></div>
 
   <script>
-    // --- MOCK DATA ---
     const EBOOKS = [
       {
         id: 'book-1',
         title: 'The Law of Attraction',
         author: 'Elias Thorne',
-        price: 1250,
+        price: 1, // Set to 1 KES for live Daraja testing
         category: 'Spirituality',
         iconName: 'sparkles',
         iconColor: 'text-yellow-400',
         coverGradient: 'from-yellow-900/60 to-slate-900',
-        synopsis: 'Unlock the hidden geometry of the soul. This profound text bridges the gap between ancient esoteric traditions and modern quantum consciousness, offering practical meditations for spiritual alchemy.',
-        preview: `Chapter 1: The First Principle\n\nTo understand the nature of reality, one must first recognize that the observer and the observed are inexorably linked. The ancient masters knew this not through mathematics, but through direct experience of the unified field. \n\nWhen we sit in silence, the boundaries of the physical vessel begin to blur. It is in this liminal space that true transmutation occurs. The lead of our base anxieties can be turned into the gold of pure awareness...`,
-        fullText: `But this process requires more than passive sitting. It demands active engagement with the energetic currents of the body.\n\nChapter 2: The Ethereal Anatomy\nBeyond the physical flesh lies the subtle body—a network of nadis and meridians that carry the vital life force, or Prana. When these channels are blocked by trauma or ignorance, disease manifests in the physical realm.\n\nTo clear these pathways, we must employ the breath. The breath is the bridge between the conscious and unconscious mind. By mastering the rhythm of inhalation and exhalation, we gain access to the autonomic nervous system, allowing us to consciously heal deeply embedded wounds.\n\n[Full book continues for hundreds of pages detailing specific meditative practices, energetic alignments, and philosophical treatises on the nature of existence.]`
-      },
-      {
-        id: 'book-2',
-        title: 'Botanical Mysticism',
-        author: 'Dr. Amara Osei',
-        price: 850,
-        category: 'Natural Remedies',
-        iconName: 'leaf',
-        iconColor: 'text-emerald-400',
-        coverGradient: 'from-emerald-900 to-slate-900',
-        synopsis: 'A comprehensive guide to the medicinal and spiritual properties of indigenous African flora. Learn how to craft tinctures, teas, and poultices while honoring the spirit of the plants.',
-        preview: `Introduction: The Wisdom of the Roots\n\nLong before modern pharmacology synthesized active compounds in sterile laboratories, our ancestors walked the forests and savannahs, conversing with the plant kingdom. They understood that a plant is not merely a collection of chemicals, but a living entity with its own spiritual signature.\n\nTake, for instance, the Neem tree. Known in many cultures as the 'village pharmacy,' its bitter leaves possess potent antibacterial and antiviral properties. But to the traditional healer, it is also a powerful energetic cleanser...`,
-        fullText: `When preparing a Neem infusion, intention is paramount. Water acts as a crystalline memory bank, absorbing the energy of your thoughts as you steep the leaves.\n\nSection 1: The Top 10 Healing Herbs of the Rift Valley\n1. Aloe Secundiflora: Beyond its soothing gel for burns, this specific species is used in traditional gut-healing protocols. We will explore the precise method of harvesting to maintain its enzymatic vitality.\n\n2. Prunus Africana: The bark of this majestic tree holds the key to prostate health and hormonal balance. However, sustainable harvesting is crucial to ensure the survival of the species and the potency of the medicine.\n\n[Full book includes detailed recipes, dosages, and spiritual harvesting rituals for over 50 different plants.]`
-      },
-      {
-        id: 'book-3',
-        title: 'Echoes of Lemuria',
-        author: 'Valeria Vance',
-        price: 1500,
-        category: 'Ancient Wisdom',
-        iconName: 'feather',
-        iconColor: 'text-indigo-400',
-        coverGradient: 'from-indigo-900 to-slate-900',
-        synopsis: 'Dive into the submerged history of humanity. This meticulously researched volume pieces together fragmented myths, geological anomalies, and channeled records to reconstruct the lost civilization of Lemuria.',
-        preview: `Prologue: Before the Flood\n\nHistory, as it is taught in institutions, is merely the surface tension of a vast, uncharted ocean. We are told civilization began a mere six thousand years ago in Mesopotamia. Yet, megalithic structures beneath the Pacific and inexplicable artifacts challenge this neat timeline.\n\nMy journey into the Lemurian hypothesis began not with myth, but with geology. Anomalous core samples from the ocean floor suggest a massive, sudden continental subsidence. Could this be the physical echo of a collective human memory?...`,
-        fullText: `The indigenous oral traditions of the Pacific Islands speak uniformly of a motherland that sank beneath the waves. They speak of a time when humanity was not separate from nature, when telepathy was the primary mode of communication, and when crystals were utilized for energy rather than adornment.\n\nChapter 3: The Crystal Grids\nThe Lemurians understood that the Earth is a living dynamo. They constructed massive crystalline generators at key nodal points along the planet's ley lines. These grids served to stabilize the tectonic plates and broadcast a frequency of harmony to all living beings.\n\nTragically, it was the misuse of these very grids that led to the cataclysm. As the society degraded into materialism and egoic power struggles, the frequencies became distorted, ultimately triggering the seismic events that swallowed the continent.\n\n[The remaining chapters explore how to tap into remnant Lemurian energies and awaken dormant DNA strands.]`
+        synopsis: 'Unlock the hidden geometry of the soul. This profound text bridges the gap between ancient esoteric traditions and modern quantum consciousness.',
+        preview: `Chapter 1: The First Principle\n\nTo understand the nature of reality, one must first recognize that the observer and the observed are inexorably linked...`,
+        fullText: `But this process requires more than passive sitting. It demands active engagement with the energetic currents of the body.\n\nChapter 2: The Ethereal Anatomy\nBeyond the physical flesh lies the subtle body—a network of nadis and meridians that carry the vital life force... [Full Book Content]`,
+        downloadLink: 'https://qdeyxhvjrwiexqemrvbb.supabase.co/storage/v1/object/public/ebooks/Law%20of%20Attraction_%20The%20Secret%20Power%20of%20The%20Universe%20(Using%20Your%20Subconscious%20Mind,%20Visualization%20&%20Meditation%20for%20Manifesting%20Happiness,%20Love,%20Money%20&%20Success)%20Inspirational%20Self%20Help%20Book%20(%20PDFDrive%20).pdf'
       }
     ];
 
-    // --- APP LOGIC & STATE ---
     const app = {
       state: {
-        view: 'home', // 'home', 'details', 'reader'
+        view: 'home',
         selectedBookId: null,
         unlockedBooks: [],
         paymentMethod: 'mpesa',
-        isProcessing: false
+        isProcessing: false,
+        paymentMessage: '',
+        pollingInterval: null
       },
 
-      init() {
-        this.render();
-      },
+      init() { this.render(); },
 
       navigate(view, bookId = null) {
         this.state.view = view;
@@ -150,20 +81,20 @@
       },
 
       unlockBook(bookId) {
-        if (!this.state.unlockedBooks.includes(bookId)) {
-          this.state.unlockedBooks.push(bookId);
-        }
+        if (!this.state.unlockedBooks.includes(bookId)) this.state.unlockedBooks.push(bookId);
         this.closeModal();
         this.navigate('reader');
       },
 
       openModal() {
         this.state.paymentMethod = 'mpesa';
+        this.state.paymentMessage = '';
+        this.state.isProcessing = false;
         this.renderModal();
       },
 
       closeModal() {
-        if (this.state.isProcessing) return;
+        if (this.state.pollingInterval) clearInterval(this.state.pollingInterval);
         document.getElementById('modal-container').innerHTML = '';
       },
 
@@ -173,192 +104,113 @@
         this.renderModal();
       },
 
-      handlePayment(event, bookId) {
+      async handlePayment(event, bookId) {
         event.preventDefault();
+        
+        let phone = document.getElementById('mpesa-phone').value.trim();
+        // Format to 254XXXXXXXXX
+        if (phone.startsWith('0')) phone = '254' + phone.slice(1);
+        if (phone.startsWith('+')) phone = phone.slice(1);
+        if (!phone.startsWith('254')) phone = '254' + phone;
+
         this.state.isProcessing = true;
-        this.renderModal(); // Re-render to show processing state
+        this.state.paymentMessage = 'Initiating M-Pesa prompt...';
+        this.renderModal();
 
-        // Simulate network request
-        setTimeout(() => {
+        try {
+          const book = this.getBook();
+          // Call our new Netlify Backend Function!
+          const response = await fetch('/.netlify/functions/mpesa-stkpush', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phoneNumber: phone, amount: book.price, bookId: book.id })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            this.state.paymentMessage = 'Prompt sent! Please enter your M-Pesa PIN.';
+            this.renderModal();
+            // Start checking Supabase to see if the user paid
+            this.pollTransactionStatus(data.checkoutRequestId, book.id);
+          } else {
+            throw new Error(data.error || 'Failed to initiate STK Push');
+          }
+        } catch (error) {
           this.state.isProcessing = false;
-          this.unlockBook(bookId);
-        }, 2000);
+          this.state.paymentMessage = `Error: ${error.message}`;
+          this.renderModal();
+        }
       },
 
-      getBook() {
-        return EBOOKS.find(b => b.id === this.state.selectedBookId);
+      pollTransactionStatus(checkoutRequestId, bookId) {
+        let attempts = 0;
+        const maxAttempts = 30; // Stop after 90 seconds (30 * 3 seconds)
+
+        this.state.pollingInterval = setInterval(async () => {
+          attempts++;
+          if (attempts > maxAttempts) {
+            clearInterval(this.state.pollingInterval);
+            this.state.isProcessing = false;
+            this.state.paymentMessage = 'Payment timed out. Please try again.';
+            this.renderModal();
+            return;
+          }
+
+          try {
+            // Ask our backend if the webhook received a success message
+            const res = await fetch(`/.netlify/functions/check-status?id=${checkoutRequestId}`);
+            const data = await res.json();
+
+            if (data.status === 'SUCCESS') {
+              clearInterval(this.state.pollingInterval);
+              this.state.paymentMessage = 'Payment Successful! Unlocking...';
+              this.renderModal();
+              setTimeout(() => this.unlockBook(bookId), 1500); // Unlock the PDF
+            } else if (data.status === 'FAILED') {
+              clearInterval(this.state.pollingInterval);
+              this.state.isProcessing = false;
+              this.state.paymentMessage = 'Payment was cancelled or failed.';
+              this.renderModal();
+            }
+          } catch (err) {
+            console.error("Polling error", err);
+          }
+        }, 3000); // Check every 3 seconds
       },
 
-      isUnlocked(bookId) {
-        return this.state.unlockedBooks.includes(bookId);
-      },
-
-      // --- RENDERING VIEWS ---
+      getBook() { return EBOOKS.find(b => b.id === this.state.selectedBookId); },
+      isUnlocked(bookId) { return this.state.unlockedBooks.includes(bookId); },
 
       render() {
         const main = document.getElementById('main-content');
-        
-        if (this.state.view === 'home') {
-          main.innerHTML = this.getHomeHTML();
-        } else if (this.state.view === 'details') {
-          main.innerHTML = this.getDetailsHTML();
-        } else if (this.state.view === 'reader') {
-          main.innerHTML = this.getReaderHTML();
-        }
-        
-        lucide.createIcons(); // Refresh icons
+        if (this.state.view === 'home') main.innerHTML = this.getHomeHTML();
+        else if (this.state.view === 'details') main.innerHTML = this.getDetailsHTML();
+        else if (this.state.view === 'reader') main.innerHTML = this.getReaderHTML();
+        lucide.createIcons();
       },
 
       getHomeHTML() {
-        const featuredBook = EBOOKS[0];
-        
-        const catalogHTML = EBOOKS.map(book => `
-          <div 
-            onclick="app.navigate('details', '${book.id}')"
-            class="group bg-slate-900/50 rounded-2xl p-4 border border-slate-800 hover:border-slate-700 transition-all duration-300 cursor-pointer flex flex-col"
-          >
-            <div class="w-full h-64 rounded-xl mb-6 flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br ${book.coverGradient} shadow-inner">
-              <i data-lucide="${book.iconName}" class="w-12 h-12 ${book.iconColor}"></i>
-              <div class="mt-6 font-serif text-xl font-medium text-white/90">${book.title}</div>
-            </div>
-            
-            <div class="flex-grow">
-              <div class="text-xs font-bold text-yellow-500 uppercase tracking-wider mb-2">${book.category}</div>
-              <h3 class="text-xl font-bold mb-1 text-slate-100 group-hover:text-yellow-400 transition-colors">${book.title}</h3>
-              <p class="text-slate-400 text-sm mb-4">by ${book.author}</p>
-            </div>
-
-            <div class="flex items-center justify-between pt-4 border-t border-slate-800/50 mt-auto">
-              <span class="font-semibold text-lg">KES ${book.price}</span>
-              <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-yellow-500 group-hover:text-slate-950 transition-colors">
-                <i data-lucide="chevron-right" class="w-4 h-4"></i>
-              </div>
-            </div>
-          </div>
-        `).join('');
-
+        const book = EBOOKS[0];
         return `
-          <div class="animate-fade-in">
-            <!-- Hero Section -->
-            <section class="relative overflow-hidden pt-20 pb-32">
-              <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-yellow-900/20 via-slate-950 to-slate-950"></div>
-              <div class="max-w-6xl mx-auto px-6 relative z-10 text-center md:text-left flex flex-col md:flex-row items-center gap-12">
-                <div class="md:w-1/2">
-                  <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-6">
-                    Unlock Ancient <br/>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">Wisdom</span>
-                  </h1>
-                  <p class="text-lg text-slate-400 mb-8 leading-relaxed max-w-lg mx-auto md:mx-0">
-                    Deeply researched texts on spirituality, natural healing, and the forgotten histories of our world. Elevate your consciousness today.
-                  </p>
-                  <div class="flex gap-4 justify-center md:justify-start">
-                    <button onclick="document.getElementById('catalog').scrollIntoView({behavior: 'smooth'})" class="px-8 py-3.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-semibold rounded-full transition-all shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:shadow-[0_0_30px_rgba(234,179,8,0.5)]">
-                      Explore Catalog
-                    </button>
-                  </div>
-                </div>
-                
-                <!-- Featured Book Showcase -->
-                <div class="md:w-1/2 flex justify-center mt-12 md:mt-0 relative group cursor-pointer" onclick="app.navigate('details', '${featuredBook.id}')">
-                  <div class="absolute inset-0 bg-yellow-500/20 blur-3xl rounded-full scale-150 group-hover:bg-yellow-500/30 transition-all duration-500"></div>
-                  <div class="relative w-64 h-96 rounded-xl shadow-2xl overflow-hidden transform group-hover:-translate-y-4 group-hover:rotate-2 transition-all duration-500 bg-gradient-to-br from-yellow-900/60 to-slate-900 border border-yellow-800/30 flex flex-col items-center justify-center text-center p-6">
-                    <i data-lucide="${featuredBook.iconName}" class="w-16 h-16 ${featuredBook.iconColor} mb-6"></i>
-                    <h3 class="text-2xl font-bold text-white mb-2 font-serif">${featuredBook.title}</h3>
-                    <p class="text-yellow-300/80 text-sm">${featuredBook.author}</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <!-- Catalog Section -->
-            <section class="max-w-6xl mx-auto px-6" id="catalog">
-              <div class="flex items-end justify-between mb-12 border-b border-slate-800 pb-4">
-                <h2 class="text-3xl font-light">The <span class="font-semibold text-yellow-500">Collection</span></h2>
-                <span class="text-slate-500 text-sm uppercase tracking-widest">${EBOOKS.length} Volumes</span>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                ${catalogHTML}
-              </div>
-            </section>
+          <div class="animate-fade-in max-w-6xl mx-auto px-6 pt-20">
+             <div onclick="app.navigate('details', '${book.id}')" class="group bg-slate-900/50 rounded-2xl p-4 border border-slate-800 hover:border-yellow-500 transition-all duration-300 cursor-pointer flex flex-col text-center w-full max-w-sm mx-auto">
+              <i data-lucide="${book.iconName}" class="w-12 h-12 ${book.iconColor} mx-auto mb-4"></i>
+              <h3 class="text-2xl font-bold mb-1 text-slate-100">${book.title}</h3>
+              <span class="font-semibold text-lg text-yellow-500 mt-4">KES ${book.price}</span>
+            </div>
           </div>
         `;
       },
 
       getDetailsHTML() {
         const book = this.getBook();
-        const unlocked = this.isUnlocked(book.id);
-
         return `
-          <div class="max-w-5xl mx-auto px-6 pt-12 animate-slide-in-right">
-            <button 
-              onclick="app.navigate('home')"
-              class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-12"
-            >
-              <i data-lucide="arrow-left" class="w-4 h-4"></i>
-              <span>Back to Catalog</span>
-            </button>
-
-            <div class="flex flex-col md:flex-row gap-12 lg:gap-20">
-              <!-- Left Col: Cover -->
-              <div class="w-full md:w-1/3 flex-shrink-0">
-                <div class="w-full aspect-[2/3] rounded-xl flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br ${book.coverGradient} shadow-2xl border border-white/5">
-                  <i data-lucide="${book.iconName}" class="w-16 h-16 ${book.iconColor}"></i>
-                  <h2 class="mt-8 font-serif text-3xl font-bold text-white leading-tight">${book.title}</h2>
-                  <p class="mt-4 text-white/70 italic">${book.author}</p>
-                </div>
-              </div>
-
-              <!-- Right Col: Details -->
-              <div class="flex flex-col">
-                <div class="inline-block px-3 py-1 rounded-full bg-slate-800 text-yellow-400 text-xs font-bold uppercase tracking-widest w-fit mb-6">
-                  ${book.category}
-                </div>
-                <h1 class="text-4xl md:text-5xl font-bold mb-4 text-slate-50">${book.title}</h1>
-                <p class="text-xl text-slate-400 mb-8">Authored by <span class="text-slate-200">${book.author}</span></p>
-                
-                <div class="prose prose-invert max-w-none text-slate-300 leading-relaxed mb-10">
-                  <p>${book.synopsis}</p>
-                </div>
-
-                <div class="bg-slate-900/50 rounded-2xl p-6 border border-slate-800 mb-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-                  <div>
-                    <p class="text-sm text-slate-400 mb-1">Investment in Knowledge</p>
-                    <p class="text-3xl font-bold text-white">KES ${book.price}</p>
-                  </div>
-                  
-                  <div class="flex gap-4 w-full sm:w-auto">
-                    ${unlocked ? `
-                      <button 
-                        onclick="app.navigate('reader')"
-                        class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-colors"
-                      >
-                        <i data-lucide="book-open" class="w-5 h-5"></i> Read Full Book
-                      </button>
-                    ` : `
-                      <button 
-                        onclick="app.navigate('reader')"
-                        class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition-colors border border-slate-700"
-                      >
-                        <i data-lucide="book" class="w-5 h-5 text-slate-400"></i> Read Preview
-                      </button>
-                      <button 
-                        onclick="app.openModal()"
-                        class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl transition-colors shadow-lg shadow-yellow-900/20"
-                      >
-                        <i data-lucide="lock" class="w-5 h-5"></i> Unlock Now
-                      </button>
-                    `}
-                  </div>
-                </div>
-                
-                <div class="flex items-center gap-6 text-sm text-slate-500">
-                  <div class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-yellow-500"></i> Instant Access</div>
-                  <div class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-yellow-500"></i> Secure Payment</div>
-                  <div class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-yellow-500"></i> Multi-device Read</div>
-                </div>
-              </div>
-            </div>
+          <div class="max-w-3xl mx-auto px-6 pt-20 text-center animate-slide-in-right">
+             <button onclick="app.navigate('home')" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-12 mx-auto"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
+             <h1 class="text-5xl font-bold mb-4 text-slate-50">${book.title}</h1>
+             <p class="text-3xl font-bold text-yellow-500 mb-8">KES ${book.price}</p>
+             <button onclick="app.navigate('reader')" class="px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl transition-colors shadow-lg shadow-yellow-900/20">Read Preview & Buy</button>
           </div>
         `;
       },
@@ -366,74 +218,24 @@
       getReaderHTML() {
         const book = this.getBook();
         const unlocked = this.isUnlocked(book.id);
-
         return `
           <div class="max-w-4xl mx-auto px-6 pt-8 animate-fade-in">
-            <!-- Reader Toolbar -->
-            <div class="flex items-center justify-between pb-6 border-b border-slate-800/60 mb-10 sticky top-20 bg-slate-950/90 backdrop-blur z-30 pt-4">
-              <button 
-                onclick="app.navigate('details')"
-                class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
-              >
-                <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                <span class="hidden sm:inline">Exit Reader</span>
-              </button>
-              
-              <div class="text-center">
-                <h2 class="font-bold text-slate-200">${book.title}</h2>
-                <p class="text-xs text-slate-500 uppercase tracking-widest">${unlocked ? 'Full Text' : 'Preview Mode'}</p>
-              </div>
-
-              <div>
-                ${unlocked ? `
-                  <a href="https://qdeyxhvjrwiexqemrvbb.supabase.co/storage/v1/object/public/ebooks/Law%20of%20Attraction_%20The%20Secret%20Power%20of%20The%20Universe%20(Using%20Your%20Subconscious%20Mind,%20Visualization%20&%20Meditation%20for%20Manifesting%20Happiness,%20Love,%20Money%20&%20Success)%20Inspirational%20Self%20Help%20Book%20(%20PDFDrive%20).pdf" target="_blank" class="flex items-center gap-2 text-yellow-500 hover:text-yellow-400 transition-colors text-sm font-medium bg-yellow-500/10 px-4 py-2 rounded-lg">
-                    <i data-lucide="download" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Download PDF</span>
-                  </a>
-                ` : `<div></div>`}
-              </div>
+            <div class="flex items-center justify-between pb-6 border-b border-slate-800/60 mb-10">
+              <button onclick="app.navigate('details')" class="flex items-center gap-2 text-slate-400 hover:text-white"><i data-lucide="arrow-left" class="w-4 h-4"></i> Exit Reader</button>
+              ${unlocked ? `<a href="${book.downloadLink}" target="_blank" class="flex items-center gap-2 text-yellow-500 bg-yellow-500/10 px-4 py-2 rounded-lg"><i data-lucide="download" class="w-4 h-4"></i> Download PDF</a>` : ''}
             </div>
-
-            <!-- Book Content Area -->
-            <div class="relative font-serif text-lg leading-loose text-slate-300 md:text-xl md:leading-[2.2]">
-              
-              <!-- Unlocked / Free Preview Content -->
+            <div class="relative font-serif text-lg leading-loose text-slate-300">
               <div class="whitespace-pre-wrap">${book.preview}</div>
-
-              <!-- Locked Content Area -->
               ${!unlocked ? `
                 <div class="relative mt-4">
-                  <!-- Blurred dummy text representing the locked part -->
-                  <div class="whitespace-pre-wrap blur-text" aria-hidden="true">${book.fullText}</div>
-                  
-                  <!-- Paywall Overlay -->
-                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent flex flex-col items-center justify-end pb-20">
-                    <div class="bg-slate-900/90 border border-yellow-900/50 p-8 rounded-2xl max-w-md text-center shadow-2xl backdrop-blur-md">
-                      <i data-lucide="lock" class="w-12 h-12 text-yellow-500 mx-auto mb-4"></i>
-                      <h3 class="text-2xl font-bold text-white mb-3">Keep Reading</h3>
-                      <p class="text-slate-400 text-sm mb-6 leading-relaxed">
-                        You've reached the end of the free preview. Unlock the complete wisdom of <i>"${book.title}"</i> to continue your journey.
-                      </p>
-                      <button 
-                        onclick="app.openModal()"
-                        class="w-full py-4 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold rounded-xl transition-all shadow-lg text-lg flex items-center justify-center gap-2"
-                      >
-                        Pay KES ${book.price} to Unlock
+                  <div class="whitespace-pre-wrap blur-text select-none">${book.fullText}</div>
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950 flex items-end justify-center pb-20">
+                      <button onclick="app.openModal()" class="w-full max-w-md py-4 bg-yellow-500 text-slate-950 font-bold rounded-xl shadow-2xl flex items-center justify-center gap-2">
+                        <i data-lucide="lock" class="w-5 h-5"></i> Pay KES ${book.price} to Unlock
                       </button>
-                    </div>
                   </div>
                 </div>
-              ` : `
-                <div class="whitespace-pre-wrap mt-4 animate-slide-in-bottom">${book.fullText}
-                  <div class="my-20 flex flex-col items-center justify-center p-12 border border-slate-800 rounded-2xl bg-slate-900/30">
-                    <i data-lucide="sparkles" class="w-8 h-8 text-yellow-500 mb-4"></i>
-                    <h4 class="text-xl font-sans font-bold text-white mb-2">End of Book</h4>
-                    <p class="text-sans text-slate-400 text-sm text-center max-w-md">
-                      Thank you for seeking wisdom with Hekima Ebooks. May this knowledge serve you well on your path.
-                    </p>
-                  </div>
-                </div>
-              `}
+              ` : `<div class="whitespace-pre-wrap mt-4">${book.fullText}</div>`}
             </div>
           </div>
         `;
@@ -442,146 +244,33 @@
       renderModal() {
         const book = this.getBook();
         const container = document.getElementById('modal-container');
-        const m = this.state.paymentMethod;
         const processing = this.state.isProcessing;
-
-        // Form Inputs logic
-        let paymentFields = '';
-        if (m === 'mpesa') {
-          paymentFields = `
-            <div class="space-y-4 animate-fade-in">
-              <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wide">M-Pesa Number</label>
-                <div class="relative">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">+254</span>
-                  <input type="text" placeholder="7XX XXX XXX" required ${processing ? 'disabled' : ''}
-                    class="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 pl-14 pr-4 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-slate-600 disabled:opacity-50"
-                  />
-                </div>
-              </div>
-              <div class="p-4 bg-emerald-950/30 border border-emerald-900/50 rounded-xl">
-                <p class="text-xs text-emerald-400/80 leading-relaxed text-center">
-                  A payment prompt will be sent to your phone. Enter your M-Pesa PIN to complete the transaction.
-                </p>
-              </div>
-            </div>
-          `;
-        } else {
-          paymentFields = `
-            <div class="space-y-4 animate-fade-in">
-              <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wide">Card Number</label>
-                <input type="text" placeholder="0000 0000 0000 0000" required ${processing ? 'disabled' : ''}
-                  class="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all placeholder:text-slate-600 disabled:opacity-50"
-                />
-              </div>
-              <div class="flex gap-4">
-                <div class="flex-1">
-                  <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wide">Expiry</label>
-                  <input type="text" placeholder="MM/YY" required ${processing ? 'disabled' : ''}
-                    class="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-yellow-500 transition-all placeholder:text-slate-600 disabled:opacity-50"
-                  />
-                </div>
-                <div class="flex-1">
-                  <label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wide">CVC</label>
-                  <input type="password" placeholder="123" required ${processing ? 'disabled' : ''}
-                    class="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-yellow-500 transition-all placeholder:text-slate-600 disabled:opacity-50"
-                  />
-                </div>
-              </div>
-            </div>
-          `;
-        }
+        const msg = this.state.paymentMessage;
 
         container.innerHTML = `
           <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <!-- Backdrop -->
-            <div 
-              class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm animate-fade-in"
-              onclick="app.closeModal()"
-            ></div>
-            
-            <!-- Modal Content -->
-            <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-zoom-in">
+            <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="app.closeModal()"></div>
+            <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6">
+              <h3 class="text-lg font-bold text-white mb-4">Complete Purchase</h3>
+              ${msg ? `<div class="mb-6 p-3 rounded bg-slate-800 text-yellow-400 text-center text-sm font-medium border border-yellow-900/50">${msg}</div>` : ''}
               
-              <!-- Header -->
-              <div class="p-6 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
-                <h3 class="text-lg font-bold text-white">Complete Purchase</h3>
-                <button 
-                  onclick="app.closeModal()"
-                  ${processing ? 'disabled' : ''}
-                  class="text-slate-500 hover:text-white transition-colors disabled:opacity-50"
-                >
-                  <i data-lucide="x" class="w-5 h-5"></i>
+              <form onsubmit="app.handlePayment(event, '${book.id}')">
+                <div class="mb-6">
+                  <label class="block text-xs text-slate-400 mb-1.5 uppercase">M-Pesa Number</label>
+                  <input type="text" id="mpesa-phone" placeholder="07XX XXX XXX" required ${processing ? 'disabled' : ''} class="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 px-4 text-white focus:border-emerald-500 disabled:opacity-50" />
+                </div>
+                <button type="submit" ${processing ? 'disabled' : ''} class="w-full py-3.5 rounded-xl font-bold transition-all bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                  ${processing ? 'Processing...' : `Pay KES ${book.price}`}
                 </button>
-              </div>
-
-              <!-- Order Summary -->
-              <div class="p-6 bg-slate-800/30 border-b border-slate-800 flex items-center justify-between">
-                <div class="flex flex-col">
-                  <span class="text-sm text-slate-400">Unlocking</span>
-                  <span class="font-semibold text-slate-200">${book.title}</span>
-                </div>
-                <div class="text-right">
-                  <span class="block text-sm text-slate-400">Total</span>
-                  <span class="font-bold text-yellow-500 text-lg">KES ${book.price}</span>
-                </div>
-              </div>
-
-              <!-- Payment Methods -->
-              <div class="p-6">
-                <div class="flex gap-2 mb-6 p-1 bg-slate-950 rounded-lg border border-slate-800">
-                  <button type="button" onclick="app.setPaymentMethod('mpesa')"
-                    class="flex-1 py-2 text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2 ${
-                      m === 'mpesa' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-                    }"
-                  >
-                    <i data-lucide="smartphone" class="w-4 h-4"></i> M-Pesa
-                  </button>
-                  <button type="button" onclick="app.setPaymentMethod('card')"
-                    class="flex-1 py-2 text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2 ${
-                      m === 'card' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-                    }"
-                  >
-                    <i data-lucide="credit-card" class="w-4 h-4"></i> Card
-                  </button>
-                </div>
-
-                <form onsubmit="app.handlePayment(event, '${book.id}')">
-                  ${paymentFields}
-
-                  <button 
-                    type="submit" 
-                    ${processing ? 'disabled' : ''}
-                    class="w-full mt-8 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
-                      processing 
-                        ? 'bg-slate-700 text-slate-400 cursor-not-allowed' 
-                        : m === 'mpesa'
-                          ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(5,150,105,0.3)]'
-                          : 'bg-yellow-500 hover:bg-yellow-400 text-slate-950 shadow-[0_0_15px_rgba(234,179,8,0.3)]'
-                    }"
-                  >
-                    ${processing ? `
-                      <svg class="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Processing...
-                    ` : `Pay KES ${book.price}`}
-                  </button>
-                </form>
-              </div>
+                ${processing ? `<button type="button" onclick="app.closeModal()" class="w-full mt-3 py-2 text-slate-500 text-sm">Cancel</button>` : ''}
+              </form>
             </div>
           </div>
         `;
-        lucide.createIcons(); // Initialize icons inside modal
+        lucide.createIcons();
       }
     };
-
-    // Initialize App
-    document.addEventListener('DOMContentLoaded', () => {
-      app.init();
-    });
+    document.addEventListener('DOMContentLoaded', () => app.init());
   </script>
 </body>
 </html>
