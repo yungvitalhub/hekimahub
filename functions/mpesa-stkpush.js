@@ -8,7 +8,12 @@ exports.handler = async (event, context) => {
 
     const consumerKey = process.env.DARAJA_CONSUMER_KEY;
     const consumerSecret = process.env.DARAJA_CONSUMER_SECRET;
-    const supabaseUrl = process.env.SUPABASE_URL;
+    
+    // Clean up the Supabase URL to ensure it doesn't have trailing slashes or /rest/v1/
+    let supabaseUrl = process.env.SUPABASE_URL;
+    if (supabaseUrl.endsWith('/')) supabaseUrl = supabaseUrl.slice(0, -1);
+    if (supabaseUrl.endsWith('/rest/v1')) supabaseUrl = supabaseUrl.replace('/rest/v1', '');
+
     const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
     // Hardcoded sandbox values for testing
