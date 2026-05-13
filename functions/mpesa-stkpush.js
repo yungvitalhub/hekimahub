@@ -1,4 +1,4 @@
- if (stkResult.ResponseCode !== "0") {
+    if (stkResult.ResponseCode !== "0") {
       throw new Error(stkResult.errorMessage || 'Failed to initiate STK Push');
     }
 
@@ -33,3 +33,9 @@
 
   } catch (error) {
     console.error('STK Error:', error);
+    return {
+        statusCode: 500,
+        body: JSON.stringify({ success: false, error: error.message }),
+    };
+  }
+};
