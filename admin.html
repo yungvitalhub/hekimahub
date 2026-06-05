@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hekima Admin — Ebook Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* ─── TOKENS ─── */
+    :root {
+      --bg:        #0a0a0f;
+      --surface:   #111118;
+      --card:      #16161f;
+      --border:    #2a2a3a;
+      --accent:    #c9a84c;
+      --accent2:   #7b5ea7;
+      --danger:    #c0392b;
+      --success:   #27ae60;
+      --text:      #e8e0d0;
+      --muted:     #7a7490;
+      --gold:      linear-gradient(135deg, #c9a84c, #e8d08a, #b8943a);
+      --glow:      0 0 24px rgba(201,168,76,0.15);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Cormorant Garamond', serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE TEXTURE ─── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    /* ─── LOGIN SCREEN ─── */
+    #login-screen {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at center, #1a1528 0%, #0a0a0f 70%);
+    }
+    .login-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 3rem 2.5rem;
+      width: 380px;
+      text-align: center;
+      box-shadow: var(--glow), 0 40px 80px rgba(0,0,0,0.6);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-box::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--gold);
+    }
+    .login-symbol {
+      font-size: 2.8rem; margin-bottom: 0.5rem;
+      filter: drop-shadow(0 0 12px rgba(201,168,76,0.4));
+    }
+    .login-title {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: 1.1rem;
+      background: var(--gold);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem; letter-spacing: 0.05em;
+    }
+    .login-sub { color: var(--muted); font-size: 0.9rem; font-style: italic; margin-bottom: 2rem; }
+    .login-box input {
+      width: 100%; padding: 0.75rem 1rem;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem; border-radius: 2px; margin-bottom: 0.75rem;
+      outline: none; transition: border-color 0.2s;
+    }
+    .login-box input:focus { border-color: var(--accent); }
+    .login-box input::placeholder { color: var(--muted); }
+    #login-error { color: #e74c3c; font-size: 0.85rem; margin-bottom: 0.75rem; min-height: 1.2em; font-style: italic; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.65rem 1.4rem; border: none; border-radius: 2px;
+      font-family: 'Cormorant Garamond', serif; font-size: 1rem;
+      cursor: pointer; transition: all 0.2s; letter-spacing: 0.04em;
+    }
+    .btn-gold {
+      background: var(--gold); color: #1a1200; font-weight: 600;
+      box-shadow: 0 4px 16px rgba(201,168,76,0.25);
+    }
+    .btn-gold:hover { box-shadow: 0 6px 24px rgba(201,168,76,0.4); transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent; color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+    .btn-outline:hover { background: rgba(201,168,76,0.08); }
+    .btn-danger { background: var(--danger); color: #fff; font-size: 0.85rem; padding: 0.45rem 0.9rem; }
+    .btn-danger:hover { background: #e74c3c; }
+    .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.85rem; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+    .btn-full { width: 100%; justify-content: center; }
+
+    /* ─── LAYOUT ─── */
+    #app { display: none; position: relative; z-index: 1; }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .header-brand {
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .header-brand span:first-child { font-size: 1.4rem; }
+    .header-brand h1 {
+      font-family: 'Cinzel Decorative', cursive; font-size: 0.95rem;
+      background: var(--gold); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; letter-spacing: 0.06em;
+    }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .admin-badge {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+      color: var(--accent2); border: 1px solid var(--accent2);
+      padding: 0.2rem 0.6rem; border-radius: 20px; letter-spacing: 0.05em;
+    }
+
+    /* ─── TABS ─── */
+    .tabs {
+      display: flex; gap: 0; border-bottom: 1px solid var(--border);
+      padding: 0 2rem; background: var(--surface);
+    }
+    .tab {
+      padding: 0.9rem 1.5rem; cursor: pointer; font-size: 0.95rem;
+      color: var(--muted); border-bottom: 2px solid transparent;
+      transition: all 0.2s; letter-spacing: 0.04em;
+    }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    /* ─── MAIN CONTENT ─── */
+    main { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+    /* ─── STATS ROW ─── */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 2px; padding: 1.2rem 1.4rem; position: relative; overflow: hidden;
+    }
+    .stat-card::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: var(--gold); opacity: 0.5;
+    }
+    .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
+    .stat-value { font-size: 2rem; font-weight: 300; color: var(--accent); line-height: 1; }
+
+    /* ─── SECTION HEADER ─── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    .section-title {
+      font-family: 'Cinzel Decorative', cursive; font-size: 0.85rem;
+      color: var(--accent); letter-spacing: 0.08em;
+    }
+
+    /* ─── FORM ─── */
+    .form-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 2px; padding: 2rem; margin-bottom: 2rem;
+      position: relative; overflow: hidden;
+    }
+    .form-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--gold);
+    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group.full { grid-column: 1 / -1; }
+    label {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+      color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    label .req { color: var(--accent); margin-left: 2px; }
+    input, textarea, select {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); font-family: 'Cormorant Garamond', serif; font-size: 1rem;
+      padding: 0.65rem 0.9rem; border-radius: 2px; outline: none;
+      transition: border-color 0.2s; width: 100%;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+    input::placeholder, textarea::placeholder { color: var(--muted); font-style: italic; }
+    textarea { resize: vertical; min-height: 90px; }
+    select option { background: var(--card); }
+    .form-hint { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; }
+    .form-actions { display: flex; gap: 1rem; margin-top: 1.5rem; align-items: center; }
+    .form-msg { font-size: 0.9rem; font-style: italic; }
+    .form-msg.success { color: var(--success); }
+    .form-msg.error { color: #e74c3c; }
+
+    /* ─── TOGGLE ─── */
+    .toggle-row { display: flex; align-items: center; gap: 0.75rem; }
+    .toggle {
+      position: relative; width: 42px; height: 22px;
+      background: var(--border); border-radius: 20px; cursor: pointer;
+      transition: background 0.25s; flex-shrink: 0;
+    }
+    .toggle.on { background: var(--accent); }
+    .toggle::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 16px; height: 16px; background: #fff; border-radius: 50%;
+      transition: transform 0.25s;
+    }
+    .toggle.on::after { transform: translateX(20px); }
+    .toggle-label { font-size: 0.9rem; color: var(--muted); }
+    .toggle-label.on { color: var(--accent); }
+
+    /* ─── TABLE / BOOK LIST ─── */
+    .book-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .book-row {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 2px; padding: 1rem 1.25rem;
+      display: grid; grid-template-columns: 56px 1fr auto auto auto;
+      align-items: center; gap: 1rem; transition: border-color 0.2s;
+    }
+    .book-row:hover { border-color: rgba(201,168,76,0.3); }
+    .book-cover {
+      width: 56px; height: 72px; object-fit: cover; border-radius: 1px;
+      border: 1px solid var(--border); background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted); font-size: 1.4rem;
+    }
+    .book-cover img { width: 100%; height: 100%; object-fit: cover; }
+    .book-info h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 0.2rem; }
+    .book-info p { font-size: 0.85rem; color: var(--muted); font-style: italic; }
+    .book-price { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--accent); white-space: nowrap; }
+    .status-pill {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+      padding: 0.2rem 0.6rem; border-radius: 20px; letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .status-pill.live { background: rgba(39,174,96,0.15); color: var(--success); border: 1px solid rgba(39,174,96,0.3); }
+    .status-pill.draft { background: rgba(122,116,144,0.15); color: var(--muted); border: 1px solid var(--border); }
+    .book-actions { display: flex; gap: 0.5rem; }
+
+    /* ─── EMPTY ─── */
+    .empty-state {
+      text-align: center; padding: 4rem 2rem; color: var(--muted);
+    }
+    .empty-state .symbol { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+    .empty-state p { font-style: italic; font-size: 1rem; }
+
+    /* ─── SEARCH / FILTER ─── */
+    .toolbar { display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap; }
+    .search-wrap { position: relative; flex: 1; min-width: 200px; }
+    .search-wrap input { padding-left: 2.2rem; }
+    .search-icon { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.9rem; }
+    .filter-select { width: auto; padding: 0.65rem 1rem; flex-shrink: 0; }
+
+    /* ─── LOADING ─── */
+    .spinner {
+      width: 28px; height: 28px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.7s linear infinite; margin: 2rem auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── STORAGE SECTION ─── */
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: 2px;
+      padding: 2rem; text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent); background: rgba(201,168,76,0.04);
+    }
+    .upload-zone p { color: var(--muted); font-style: italic; margin-top: 0.5rem; font-size: 0.9rem; }
+    .upload-list { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem; }
+    .upload-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 2px; padding: 0.75rem 1rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .upload-name { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text); word-break: break-all; }
+    .upload-url {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--accent2);
+      cursor: pointer; white-space: nowrap; text-decoration: underline;
+    }
+    .copy-toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: var(--card); border: 1px solid var(--accent);
+      color: var(--accent); padding: 0.75rem 1.25rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+      border-radius: 2px; z-index: 200;
+      animation: fadeInUp 0.25s ease; box-shadow: var(--glow);
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── MODAL ─── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 150; backdrop-filter: blur(4px);
+    }
+    .modal {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 2px; padding: 2rem; max-width: 460px; width: 90%;
+      position: relative;
+    }
+    .modal h3 { font-family: 'Cinzel Decorative', cursive; font-size: 0.85rem; color: var(--accent); margin-bottom: 1rem; }
+    .modal p { color: var(--muted); font-style: italic; margin-bottom: 1.5rem; line-height: 1.6; }
+    .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 700px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .book-row { grid-template-columns: 40px 1fr; }
+      .book-price, .book-actions, .status-pill { display: none; }
+      main { padding: 1rem; }
+      header { padding: 0.75rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════ LOGIN ════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-symbol">𓂀</div>
+    <div class="login-title">Hekima Admin</div>
+    <div class="login-sub">Sacred knowledge management portal</div>
+    <input type="email" id="login-email" placeholder="admin@email.com" autocomplete="email" />
+    <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" />
+    <div id="login-error"></div>
+    <button class="btn btn-gold btn-full" onclick="doLogin()">Enter the Portal</button>
+  </div>
+</div>
+
+<!-- ════════════════ APP ════════════════ -->
+<div id="app">
+
+  <header>
+    <div class="header-brand">
+      <span>𓂀</span>
+      <h1>Hekima Admin</h1>
+    </div>
+    <div class="header-right">
+      <span class="admin-badge" id="user-email-badge">admin</span>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('dashboard', this)">📊 Dashboard</div>
+    <div class="tab" onclick="switchTab('add', this)">✦ Add Ebook</div>
+    <div class="tab" onclick="switchTab('catalog', this)">📚 Catalog</div>
+    <div class="tab" onclick="switchTab('storage', this)">🗂 Storage</div>
+    <div class="tab" onclick="switchTab('config', this)">⚙ Config</div>
+  </div>
+
+  <main>
+
+    <!-- ── DASHBOARD ── -->
+    <div id="tab-dashboard">
+      <div class="stats" id="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Ebooks</div><div class="stat-value" id="stat-total">—</div></div>
+        <div class="stat-card"><div class="stat-label">Published</div><div class="stat-value" id="stat-live">—</div></div>
+        <div class="stat-card"><div class="stat-label">Drafts</div><div class="stat-value" id="stat-draft">—</div></div>
+        <div class="stat-card"><div class="stat-label">Categories</div><div class="stat-value" id="stat-cats">—</div></div>
+      </div>
+      <div class="section-header">
+        <div class="section-title">Recent Additions</div>
+      </div>
+      <div id="recent-list"><div class="spinner"></div></div>
+    </div>
+
+    <!-- ── ADD EBOOK ── -->
+    <div id="tab-add" style="display:none">
+      <div class="form-card">
+        <div class="section-header" style="margin-bottom:1.5rem">
+          <div class="section-title">New Ebook Entry</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Title <span class="req">*</span></label>
+            <input id="f-title" type="text" placeholder="e.g. The Book of Thoth" />
+          </div>
+          <div class="form-group">
+            <label>Author <span class="req">*</span></label>
+            <input id="f-author" type="text" placeholder="e.g. Hermes Trismegistus" />
+          </div>
+          <div class="form-group">
+            <label>Category <span class="req">*</span></label>
+            <select id="f-category">
+              <option value="">— Select Category —</option>
+              <option>Ancient Wisdom</option>
+              <option>Spirituality</option>
+              <option>Astrology</option>
+              <option>Hermeticism</option>
+              <option>Numerology</option>
+              <option>Sacred Geometry</option>
+              <option>Mythology</option>
+              <option>Meditation</option>
+              <option>Esoteric Philosophy</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Price (KES) <span class="req">*</span></label>
+            <input id="f-price" type="number" placeholder="e.g. 499" min="0" step="0.01" />
+          </div>
+          <div class="form-group full">
+            <label>Short Description <span class="req">*</span></label>
+            <textarea id="f-desc" placeholder="A compelling blurb that makes readers want to purchase..."></textarea>
+          </div>
+          <div class="form-group full">
+            <label>Cover Image URL</label>
+            <input id="f-cover" type="url" placeholder="https://... (upload first in Storage tab, paste URL here)" />
+            <span class="form-hint">Upload your cover image in the Storage tab → copy URL → paste here</span>
+          </div>
+          <div class="form-group full">
+            <label>PDF / Ebook File URL</label>
+            <input id="f-pdf" type="url" placeholder="https://... (upload PDF in Storage tab, paste URL here)" />
+            <span class="form-hint">Upload your PDF in the Storage tab → copy URL → paste here</span>
+          </div>
+          <div class="form-group">
+            <label>Buy / Checkout URL</label>
+            <input id="f-buy" type="url" placeholder="https://gumroad.com/l/... or Lemon Squeezy link" />
+          </div>
+          <div class="form-group">
+            <label>Tags (comma-separated)</label>
+            <input id="f-tags" type="text" placeholder="e.g. egypt, magic, ancient" />
+          </div>
+          <div class="form-group full">
+            <label>Publication Status</label>
+            <div class="toggle-row" style="margin-top:0.3rem">
+              <div class="toggle" id="toggle-publish" onclick="togglePublish()"></div>
+              <span class="toggle-label" id="toggle-label">Draft — not visible to users</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-gold" onclick="submitBook()" id="submit-btn">✦ Publish Ebook</button>
+          <button class="btn btn-outline" onclick="clearForm()">Clear</button>
+          <span class="form-msg" id="form-msg"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CATALOG ── -->
+    <div id="tab-catalog" style="display:none">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="Search by title or author..." oninput="filterBooks()" />
+        </div>
+        <select class="filter-select" id="filter-cat" onchange="filterBooks()">
+          <option value="">All Categories</option>
+          <option>Ancient Wisdom</option>
+          <option>Spirituality</option>
+          <option>Astrology</option>
+          <option>Hermeticism</option>
+          <option>Numerology</option>
+          <option>Sacred Geometry</option>
+          <option>Mythology</option>
+          <option>Meditation</option>
+          <option>Esoteric Philosophy</option>
+          <option>Other</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="loadBooks()">↺ Refresh</button>
+      </div>
+      <div id="book-list"><div class="spinner"></div></div>
+    </div>
+
+    <!-- ── STORAGE ── -->
+    <div id="tab-storage" style="display:none">
+      <div class="form-card" style="margin-bottom:1.5rem">
+        <div class="section-title" style="margin-bottom:1.25rem">Upload Files to Supabase Storage</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Target Bucket</label>
+            <select id="upload-bucket">
+              <option value="covers">covers (book cover images)</option>
+              <option value="ebooks">ebooks (PDF files)</option>
+            </select>
+          </div>
+          <div class="form-group" style="justify-content:flex-end">
+            <label>&nbsp;</label>
+            <button class="btn btn-gold" onclick="triggerUpload()">⬆ Upload File</button>
+            <input type="file" id="file-input" style="display:none" onchange="uploadFile()" />
+          </div>
+        </div>
+        <div class="upload-zone" id="drop-zone" onclick="triggerUpload()">
+          <div style="font-size:2rem">📁</div>
+          <p>Click or drag & drop — images (covers) or PDF files (ebooks)</p>
+        </div>
+        <div id="upload-progress" style="display:none;margin-top:1rem">
+          <div style="color:var(--muted);font-style:italic;font-size:0.9rem">Uploading...</div>
+        </div>
+      </div>
+      <div class="section-header">
+        <div class="section-title">Uploaded Files</div>
+        <button class="btn btn-outline btn-sm" onclick="loadStorageFiles()">↺ Refresh</button>
+      </div>
+      <div id="storage-list"><div class="spinner"></div></div>
+    </div>
+
+    <!-- ── CONFIG ── -->
+    <div id="tab-config" style="display:none">
+      <div class="form-card">
+        <div class="section-title" style="margin-bottom:1.5rem">⚙ Supabase Configuration</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Supabase Project URL <span class="req">*</span></label>
+            <input id="cfg-url" type="url" placeholder="https://xxxxxxxxxxxx.supabase.co" />
+          </div>
+          <div class="form-group full">
+            <label>Supabase Anon Key <span class="req">*</span></label>
+            <input id="cfg-key" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
+            <span class="form-hint">Found in Supabase → Project Settings → API → anon / public key</span>
+          </div>
+          <div class="form-group">
+            <label>Ebooks Table Name</label>
+            <input id="cfg-table" type="text" placeholder="ebooks" value="ebooks" />
+          </div>
+          <div class="form-group">
+            <label>Admin Email</label>
+            <input id="cfg-admin" type="email" placeholder="your@email.com" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-gold" onclick="saveConfig()">Save Configuration</button>
+          <span class="form-msg" id="cfg-msg"></span>
+        </div>
+      </div>
+      <div class="form-card" style="margin-top:1.5rem">
+        <div class="section-title" style="margin-bottom:1rem">📋 Supabase Table Schema</div>
+        <p style="color:var(--muted);font-style:italic;margin-bottom:1rem;font-size:0.9rem">Run this SQL in your Supabase SQL Editor to create the ebooks table:</p>
+        <pre style="background:var(--surface);padding:1.25rem;border-radius:2px;font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text);overflow-x:auto;line-height:1.6;border:1px solid var(--border)">create table if not exists ebooks (
+  id          uuid default gen_random_uuid() primary key,
+  title       text not null,
+  author      text not null,
+  category    text,
+  description text,
+  price       numeric(10,2) default 0,
+  cover_url   text,
+  pdf_url     text,
+  buy_url     text,
+  tags        text[],
+  is_published boolean default false,
+  created_at  timestamptz default now()
+);
+
+-- Enable Row Level Security
+alter table ebooks enable row level security;
+
+-- Allow anyone to READ published ebooks (for your main site)
+create policy "Public can view published"
+  on ebooks for select
+  using (is_published = true);
+
+-- Allow authenticated users full access (for this admin panel)
+create policy "Auth users manage all"
+  on ebooks for all
+  using (auth.role() = 'authenticated');</pre>
+        <button class="btn btn-outline btn-sm" style="margin-top:0.75rem" onclick="copySql()">Copy SQL</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── DELETE MODAL ── -->
+<div class="modal-overlay" id="delete-modal" style="display:none">
+  <div class="modal">
+    <h3>⚠ Confirm Deletion</h3>
+    <p>Are you certain you want to remove this ebook from the catalog? This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirm-delete-btn">Delete Permanently</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  CONFIG — Loaded from localStorage
+// ═══════════════════════════════════════════════════
+let CONFIG = {
+  url:   localStorage.getItem('hk_url')   || '',
+  key:   localStorage.getItem('hk_key')   || '',
+  table: localStorage.getItem('hk_table') || 'ebooks',
+};
+
+let supabase = null;
+let allBooks = [];
+let isPublished = false;
+let deleteTargetId = null;
+
+// ─── Init Supabase ───
+function initSupabase() {
+  if (!CONFIG.url || !CONFIG.key) return false;
+  try {
+    supabase = window.supabase.createClient(CONFIG.url, CONFIG.key);
+    return true;
+  } catch(e) { return false; }
+}
+
+// ═══════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+
+  if (!CONFIG.url || !CONFIG.key) {
+    // First time — show config hint
+    errEl.textContent = 'Set your Supabase URL & Key in the Config tab first.';
+    showAppDirect();
+    return;
+  }
+
+  if (!initSupabase()) { errEl.textContent = 'Could not connect to Supabase.'; return; }
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+  if (error) { errEl.textContent = error.message; return; }
+
+  showApp(email);
+}
+
+async function doLogout() {
+  if (supabase) await supabase.auth.signOut();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function showApp(email) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  if (email) document.getElementById('user-email-badge').textContent = email.split('@')[0];
+  loadDashboard();
+}
+
+function showAppDirect() {
+  // Bypass login for first-time config setup
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  switchTabById('config');
+  toast('⚙ Welcome! Please enter your Supabase credentials below.');
+}
+
+// ─── Auto-restore session ───
+window.addEventListener('load', async () => {
+  // Pre-fill config fields
+  document.getElementById('cfg-url').value   = CONFIG.url;
+  document.getElementById('cfg-key').value   = CONFIG.key;
+  document.getElementById('cfg-table').value = CONFIG.table;
+  if (!CONFIG.url || !CONFIG.key) return;
+  if (!initSupabase()) return;
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) showApp(session.user.email);
+});
+
+// ═══════════════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════════════
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('main > div').forEach(d => d.style.display = 'none');
+  document.getElementById('tab-' + name).style.display = 'block';
+  if (name === 'catalog') loadBooks();
+  if (name === 'storage') loadStorageFiles();
+  if (name === 'dashboard') loadDashboard();
+}
+function switchTabById(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const names = ['dashboard','add','catalog','storage','config'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('main > div').forEach(d => d.style.display = 'none');
+  document.getElementById('tab-' + name).style.display = 'block';
+}
+
+// ═══════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════
+async function loadDashboard() {
+  if (!supabase) return;
+  const { data, error } = await supabase.from(CONFIG.table).select('*').order('created_at', { ascending: false });
+  if (error || !data) return;
+
+  const total = data.length;
+  const live  = data.filter(b => b.is_published).length;
+  const draft = total - live;
+  const cats  = new Set(data.map(b => b.category).filter(Boolean)).size;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-live').textContent  = live;
+  document.getElementById('stat-draft').textContent = draft;
+  document.getElementById('stat-cats').textContent  = cats;
+
+  const recent = data.slice(0, 5);
+  const list   = document.getElementById('recent-list');
+  if (!recent.length) { list.innerHTML = '<div class="empty-state"><div class="symbol">📭</div><p>No ebooks yet. Add your first one!</p></div>'; return; }
+  list.innerHTML = recent.map(b => bookRowHtml(b)).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  CATALOG
+// ═══════════════════════════════════════════════════
+async function loadBooks() {
+  if (!supabase) { document.getElementById('book-list').innerHTML = '<p style="color:var(--muted);font-style:italic">Connect Supabase in Config tab first.</p>'; return; }
+  document.getElementById('book-list').innerHTML = '<div class="spinner"></div>';
+  const { data, error } = await supabase.from(CONFIG.table).select('*').order('created_at', { ascending: false });
+  if (error) { document.getElementById('book-list').innerHTML = `<p style="color:#e74c3c">Error: ${error.message}</p>`; return; }
+  allBooks = data || [];
+  renderBooks(allBooks);
+}
+
+function renderBooks(books) {
+  const el = document.getElementById('book-list');
+  if (!books.length) { el.innerHTML = '<div class="empty-state"><div class="symbol">📚</div><p>No ebooks match your search.</p></div>'; return; }
+  el.innerHTML = '<div class="book-list">' + books.map(b => bookRowHtml(b)).join('') + '</div>';
+}
+
+function bookRowHtml(b) {
+  const thumb = b.cover_url
+    ? `<div class="book-cover"><img src="${b.cover_url}" alt="${b.title}" onerror="this.parentElement.textContent='📖'" /></div>`
+    : `<div class="book-cover">📖</div>`;
+  const status = b.is_published
+    ? '<span class="status-pill live">● LIVE</span>'
+    : '<span class="status-pill draft">◌ DRAFT</span>';
+  const price = b.price ? `KES ${Number(b.price).toLocaleString()}` : 'Free';
+  return `
+    <div class="book-row">
+      ${thumb}
+      <div class="book-info">
+        <h3>${b.title || '—'}</h3>
+        <p>${b.author || ''} · ${b.category || ''}</p>
+      </div>
+      <div class="book-price">${price}</div>
+      ${status}
+      <div class="book-actions">
+        <button class="btn btn-outline btn-sm" onclick="togglePublished('${b.id}', ${b.is_published})">
+          ${b.is_published ? 'Unpublish' : 'Publish'}
+        </button>
+        <button class="btn btn-danger" onclick="confirmDelete('${b.id}')">Delete</button>
+      </div>
+    </div>`;
+}
+
+function filterBooks() {
+  const q   = document.getElementById('search-input').value.toLowerCase();
+  const cat = document.getElementById('filter-cat').value;
+  const filtered = allBooks.filter(b => {
+    const matchQ   = !q || (b.title||'').toLowerCase().includes(q) || (b.author||'').toLowerCase().includes(q);
+    const matchCat = !cat || b.category === cat;
+    return matchQ && matchCat;
+  });
+  renderBooks(filtered);
+}
+
+// ─── Toggle publish ───
+async function togglePublished(id, current) {
+  if (!supabase) return;
+  const { error } = await supabase.from(CONFIG.table).update({ is_published: !current }).eq('id', id);
+  if (!error) { loadBooks(); loadDashboard(); toast(current ? 'Set to Draft' : '✓ Published!'); }
+}
+
+// ─── Delete ───
+function confirmDelete(id) {
+  deleteTargetId = id;
+  document.getElementById('delete-modal').style.display = 'flex';
+  document.getElementById('confirm-delete-btn').onclick = async () => {
+    const { error } = await supabase.from(CONFIG.table).delete().eq('id', deleteTargetId);
+    closeModal();
+    if (!error) { loadBooks(); loadDashboard(); toast('Ebook deleted.'); }
+  };
+}
+function closeModal() { document.getElementById('delete-modal').style.display = 'none'; }
+
+// ═══════════════════════════════════════════════════
+//  ADD EBOOK FORM
+// ═══════════════════════════════════════════════════
+function togglePublish() {
+  isPublished = !isPublished;
+  const tog   = document.getElementById('toggle-publish');
+  const lbl   = document.getElementById('toggle-label');
+  tog.classList.toggle('on', isPublished);
+  lbl.className = 'toggle-label' + (isPublished ? ' on' : '');
+  lbl.textContent = isPublished ? 'Published — visible to users' : 'Draft — not visible to users';
+}
+
+async function submitBook() {
+  const btn = document.getElementById('submit-btn');
+  const msg = document.getElementById('form-msg');
+  msg.textContent = '';
+
+  const title    = document.getElementById('f-title').value.trim();
+  const author   = document.getElementById('f-author').value.trim();
+  const category = document.getElementById('f-category').value;
+  const price    = parseFloat(document.getElementById('f-price').value) || 0;
+  const desc     = document.getElementById('f-desc').value.trim();
+
+  if (!title || !author || !category) {
+    msg.textContent = 'Title, Author and Category are required.';
+    msg.className = 'form-msg error'; return;
+  }
+  if (!supabase) { msg.textContent = 'Supabase not connected. Check Config tab.'; msg.className = 'form-msg error'; return; }
+
+  const tagsRaw = document.getElementById('f-tags').value;
+  const tags    = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+  const payload = {
+    title, author, category, price,
+    description:  desc,
+    cover_url:    document.getElementById('f-cover').value.trim() || null,
+    pdf_url:      document.getElementById('f-pdf').value.trim() || null,
+    buy_url:      document.getElementById('f-buy').value.trim() || null,
+    tags,
+    is_published: isPublished,
+  };
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const { error } = await supabase.from(CONFIG.table).insert(payload);
+  btn.disabled = false; btn.textContent = '✦ Publish Ebook';
+
+  if (error) {
+    msg.textContent = 'Error: ' + error.message;
+    msg.className = 'form-msg error';
+  } else {
+    msg.textContent = '✓ Ebook added successfully!';
+    msg.className = 'form-msg success';
+    clearForm();
+    toast('✦ Ebook added to catalog!');
+    setTimeout(() => { msg.textContent = ''; }, 4000);
+  }
+}
+
+function clearForm() {
+  ['f-title','f-author','f-desc','f-cover','f-pdf','f-buy','f-tags'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-category').value = '';
+  document.getElementById('f-price').value = '';
+  if (isPublished) togglePublish();
+}
+
+// ═══════════════════════════════════════════════════
+//  STORAGE
+// ═══════════════════════════════════════════════════
+function triggerUpload() { document.getElementById('file-input').click(); }
+
+async function uploadFile() {
+  if (!supabase) { toast('Connect Supabase first.'); return; }
+  const file   = document.getElementById('file-input').files[0];
+  if (!file) return;
+  const bucket = document.getElementById('upload-bucket').value;
+  const name   = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+
+  document.getElementById('upload-progress').style.display = 'block';
+  const { error } = await supabase.storage.from(bucket).upload(name, file, { upsert: false });
+  document.getElementById('upload-progress').style.display = 'none';
+  document.getElementById('file-input').value = '';
+
+  if (error) { toast('Upload error: ' + error.message); return; }
+  toast('✓ Uploaded! Copy the URL from the list below.');
+  loadStorageFiles();
+}
+
+async function loadStorageFiles() {
+  if (!supabase) return;
+  const list = document.getElementById('storage-list');
+  list.innerHTML = '<div class="spinner"></div>';
+
+  const buckets = ['covers', 'ebooks'];
+  let html = '';
+
+  for (const bucket of buckets) {
+    const { data, error } = await supabase.storage.from(bucket).list('', { sortBy: { column: 'created_at', order: 'desc' } });
+    if (error || !data || !data.length) continue;
+    html += `<div class="section-title" style="margin:1.25rem 0 0.75rem">${bucket}/</div><div class="upload-list">`;
+    for (const f of data) {
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(f.name);
+      const url = urlData?.publicUrl || '';
+      html += `<div class="upload-item">
+        <span class="upload-name">${f.name}</span>
+        <span class="upload-url" onclick="copyUrl('${url}')">📋 Copy URL</span>
+      </div>`;
+    }
+    html += '</div>';
+  }
+
+  list.innerHTML = html || '<div class="empty-state"><div class="symbol">🗂</div><p>No files uploaded yet.</p></div>';
+}
+
+// Drag & drop
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) {
+    document.getElementById('file-input').files = e.dataTransfer.files;
+    uploadFile();
+  }
+});
+
+// ═══════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════
+function saveConfig() {
+  const url   = document.getElementById('cfg-url').value.trim();
+  const key   = document.getElementById('cfg-key').value.trim();
+  const table = document.getElementById('cfg-table').value.trim() || 'ebooks';
+  const msg   = document.getElementById('cfg-msg');
+
+  if (!url || !key) { msg.textContent = 'URL and Key are required.'; msg.className = 'form-msg error'; return; }
+
+  localStorage.setItem('hk_url', url);
+  localStorage.setItem('hk_key', key);
+  localStorage.setItem('hk_table', table);
+
+  CONFIG = { url, key, table };
+  initSupabase();
+  msg.textContent = '✓ Saved! You can now log in.';
+  msg.className = 'form-msg success';
+  setTimeout(() => { msg.textContent = ''; }, 3000);
+}
+
+function copySql() {
+  const sql = document.querySelector('pre').textContent;
+  navigator.clipboard.writeText(sql).then(() => toast('SQL copied to clipboard!'));
+}
+
+// ═══════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════
+function copyUrl(url) {
+  navigator.clipboard.writeText(url).then(() => toast('URL copied! Paste it in the form.'));
+}
+
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'copy-toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+</script>
+</body>
+</html>
