@@ -238,7 +238,7 @@
       width: 56px; height: 72px; object-fit: cover; border-radius: 1px;
       border: 1px solid var(--border); background: var(--surface);
       display: flex; align-items: center; justify-content: center;
-      color: var(--muted); font-size: 1.4rem;
+      color: var(--muted); font-size: 1.4rem; overflow: hidden;
     }
     .book-cover img { width: 100%; height: 100%; object-fit: cover; }
     .book-info h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 0.2rem; }
@@ -346,6 +346,7 @@
     <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" />
     <div id="login-error"></div>
     <button class="btn btn-gold btn-full" onclick="doLogin()">Enter the Portal</button>
+    <button class="btn btn-outline btn-full" style="margin-top: 0.75rem;" onclick="showAppDirect()">⚙ Database Config</button>
   </div>
 </div>
 
@@ -605,7 +606,7 @@ let CONFIG = {
   table: localStorage.getItem('hk_table') || 'ebooks',
 };
 
-let supabase = null;
+let supabaseClient = null;
 let allBooks = [];
 let isPublished = false;
 let deleteTargetId = null;
@@ -614,7 +615,7 @@ let deleteTargetId = null;
 function initSupabase() {
   if (!CONFIG.url || !CONFIG.key) return false;
   try {
-    supabase = window.supabase.createClient(CONFIG.url, CONFIG.key);
+    supabaseClient = window.supabase.createClient(CONFIG.url, CONFIG.key);
     return true;
   } catch(e) { return false; }
 }
@@ -637,14 +638,14 @@ async function doLogin() {
 
   if (!initSupabase()) { errEl.textContent = 'Could not connect to Supabase.'; return; }
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
   if (error) { errEl.textContent = error.message; return; }
 
   showApp(email);
 }
 
 async function doLogout() {
-  if (supabase) await supabase.auth.signOut();
+  if (supabaseClient) await supabaseClient.auth.signOut();
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
 }
@@ -672,7 +673,7 @@ window.addEventListener('load', async () => {
   document.getElementById('cfg-table').value = CONFIG.table;
   if (!CONFIG.url || !CONFIG.key) return;
   if (!initSupabase()) return;
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) showApp(session.user.email);
 });
 
@@ -701,8 +702,8 @@ function switchTabById(name) {
 //  DASHBOARD
 // ═══════════════════════════════════════════════════
 async function loadDashboard() {
-  if (!supabase) return;
-  const { data, error } = await supabase.from(CONFIG.table).select('*').order('created_at', { ascending: false });
+  if (!supabaseClient) return;
+  const { data, error } = await supabaseClient.from(CONFIG.table).select('*').order('created_at', { ascending: false });
   if (error || !data) return;
 
   const total = data.length;
@@ -725,9 +726,9 @@ async function loadDashboard() {
 //  CATALOG
 // ═══════════════════════════════════════════════════
 async function loadBooks() {
-  if (!supabase) { document.getElementById('book-list').innerHTML = '<p style="color:var(--muted);font-style:italic">Connect Supabase in Config tab first.</p>'; return; }
+  if (!supabaseClient) { document.getElementById('book-list').innerHTML = '<p style="color:var(--muted);font-style:italic">Connect Supabase in Config tab first.</p>'; return; }
   document.getElementById('book-list').innerHTML = '<div class="spinner"></div>';
-  const { data, error } = await supabase.from(CONFIG.table).select('*').order('created_at', { ascending: false });
+  const { data, error } = await supabaseClient.from(CONFIG.table).select('*').order('created_at', { ascending: false });
   if (error) { document.getElementById('book-list').innerHTML = `<p style="color:#e74c3c">Error: ${error.message}</p>`; return; }
   allBooks = data || [];
   renderBooks(allBooks);
@@ -778,8 +779,8 @@ function filterBooks() {
 
 // ─── Toggle publish ───
 async function togglePublished(id, current) {
-  if (!supabase) return;
-  const { error } = await supabase.from(CONFIG.table).update({ is_published: !current }).eq('id', id);
+  if (!supabaseClient) return;
+  const { error } = await supabaseClient.from(CONFIG.table).update({ is_published: !current }).eq('id', id);
   if (!error) { loadBooks(); loadDashboard(); toast(current ? 'Set to Draft' : '✓ Published!'); }
 }
 
@@ -788,7 +789,7 @@ function confirmDelete(id) {
   deleteTargetId = id;
   document.getElementById('delete-modal').style.display = 'flex';
   document.getElementById('confirm-delete-btn').onclick = async () => {
-    const { error } = await supabase.from(CONFIG.table).delete().eq('id', deleteTargetId);
+    const { error } = await supabaseClient.from(CONFIG.table).delete().eq('id', deleteTargetId);
     closeModal();
     if (!error) { loadBooks(); loadDashboard(); toast('Ebook deleted.'); }
   };
@@ -822,7 +823,7 @@ async function submitBook() {
     msg.textContent = 'Title, Author and Category are required.';
     msg.className = 'form-msg error'; return;
   }
-  if (!supabase) { msg.textContent = 'Supabase not connected. Check Config tab.'; msg.className = 'form-msg error'; return; }
+  if (!supabaseClient) { msg.textContent = 'Supabase not connected. Check Config tab.'; msg.className = 'form-msg error'; return; }
 
   const tagsRaw = document.getElementById('f-tags').value;
   const tags    = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
@@ -838,7 +839,7 @@ async function submitBook() {
   };
 
   btn.disabled = true; btn.textContent = 'Saving…';
-  const { error } = await supabase.from(CONFIG.table).insert(payload);
+  const { error } = await supabaseClient.from(CONFIG.table).insert(payload);
   btn.disabled = false; btn.textContent = '✦ Publish Ebook';
 
   if (error) {
@@ -866,14 +867,14 @@ function clearForm() {
 function triggerUpload() { document.getElementById('file-input').click(); }
 
 async function uploadFile() {
-  if (!supabase) { toast('Connect Supabase first.'); return; }
+  if (!supabaseClient) { toast('Connect Supabase first.'); return; }
   const file   = document.getElementById('file-input').files[0];
   if (!file) return;
   const bucket = document.getElementById('upload-bucket').value;
   const name   = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
 
   document.getElementById('upload-progress').style.display = 'block';
-  const { error } = await supabase.storage.from(bucket).upload(name, file, { upsert: false });
+  const { error } = await supabaseClient.storage.from(bucket).upload(name, file, { upsert: false });
   document.getElementById('upload-progress').style.display = 'none';
   document.getElementById('file-input').value = '';
 
@@ -883,7 +884,7 @@ async function uploadFile() {
 }
 
 async function loadStorageFiles() {
-  if (!supabase) return;
+  if (!supabaseClient) return;
   const list = document.getElementById('storage-list');
   list.innerHTML = '<div class="spinner"></div>';
 
@@ -891,11 +892,11 @@ async function loadStorageFiles() {
   let html = '';
 
   for (const bucket of buckets) {
-    const { data, error } = await supabase.storage.from(bucket).list('', { sortBy: { column: 'created_at', order: 'desc' } });
+    const { data, error } = await supabaseClient.storage.from(bucket).list('', { sortBy: { column: 'created_at', order: 'desc' } });
     if (error || !data || !data.length) continue;
     html += `<div class="section-title" style="margin:1.25rem 0 0.75rem">${bucket}/</div><div class="upload-list">`;
     for (const f of data) {
-      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(f.name);
+      const { data: urlData } = supabaseClient.storage.from(bucket).getPublicUrl(f.name);
       const url = urlData?.publicUrl || '';
       html += `<div class="upload-item">
         <span class="upload-name">${f.name}</span>
